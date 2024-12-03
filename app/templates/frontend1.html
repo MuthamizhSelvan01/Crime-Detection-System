@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crime Detection System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        :root {
+            --bg-color-light: #bdc3c7;
+            --bg-color-dark: #2c3e50;
+            --text-color-light: #2c3e50;
+            --text-color-dark: #fff;
+            --button-bg: rgba(255, 255, 255, 0.2);
+            --button-border: #e74c3c;
+            --button-color: #e74c3c;
+            --loading-color: #e74c3c;
+            --fact-bg: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background: linear-gradient(to right, var(--bg-color-dark), var(--bg-color-light));
+    color: var(--text-color-dark);
+    font-family: 'Arial', sans-serif;
+    min-height: 100vh;
+    padding-bottom: 60px;
+    position: relative;
+        }
+        .container {
+            margin-top: 50px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            margin-bottom: 50px;
+        }
+        h1, h2 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 40px;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .btn-custom {
+            border: 2px solid var(--button-border);
+            color: var(--button-color);
+            background-color: var(--button-bg);
+            padding: 12px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .btn-custom:hover {
+            background-color: var(--button-border);
+            color: white;
+            transform: scale(1.05);
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 20px;
+            text-align: center;
+            font-weight: bold;
+            color: #27ae60;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .loading i {
+            font-size: 30px;
+            color: var(--loading-color);
+        }
+        .stream-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+            position: relative;
+            background-color: #000;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .stream-overlay {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            color: white;
+            z-index: 1000;
+        }
+        #urlInput {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid var(--button-border);
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-color-dark);
+        }
+        .stream-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .stream-status {
+            text-align: center;
+            margin-top: 10px;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .fact-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+        .fact {
+            margin: 20px;
+            background-color: var(--fact-bg);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--button-bg);
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            color: var(--text-color-dark);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        .theme-toggle:hover {
+            background: var(--button-border);
+            color: white;
+        }
+        .crime-alert {
+            background-color: #e74c3c;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">
+        <i class="fas fa-adjust"></i>
+    </button>
+
+    <div class="container">
+        <h1><i class="fas fa-shield-alt"></i> Crime Detection System</h1>
+
+        <!-- Live CCTV Section -->
+        <div class="section">
+            <h2><i class="fas fa-video"></i> Live CCTV Monitoring</h2>
+            <input type="text" id="urlInput" placeholder="Enter CCTV Stream URL (e.g., rtsp://your-camera-url)" />
+            <div class="stream-controls">
+                <button class="btn-custom" onclick="startStream()">
+                    <i class="fas fa-play"></i> Start Stream
+                </button>
+                <button class="btn-custom" onclick="stopStream()">
+                    <i class="fas fa-stop"></i> Stop Stream
+                </button>
+            </div>
+            <div class="stream-container">
+                <img id="streamView" style="width: 100%; display: none;" />
+                <div class="stream-overlay">
+                    <div id="streamPrediction">No prediction yet</div>
+                </div>
+            </div>
+            <div class="stream-status" id="streamStatus"></div>
+            <div class="crime-alert" id="streamAlert">
+                ⚠️ CRIME DETECTED! ⚠️
+            </div>
+        </div>
+
+        <!-- Recorded Footage Section -->
+        <div class="section">
+            <h2><i class="fas fa-file-video"></i> Analyze Recorded Footage</h2>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <button class="btn-custom" type="button" onclick="document.getElementById('fileInput').click()">
+                    <i class="fas fa-upload"></i> Upload Video
+                </button>
+                <input type="file" name="file" id="fileInput" accept="video/*" style="display:none;" onchange="handleVideoUpload()"/>
+            </form>
+
+            <div id="preview" style="display:none; margin-top:20px;">
+                <video width="100%" id="uploadedVideo" controls autoplay muted playsinline></video>
+            </div>
+
+            <div class="loading" id="loading">
+                <p>Processing your video...</p>
+                <i class="fas fa-spinner fa-spin"></i>
+            </div>
+
+            <div class="result" id="result"></div>
+            <div class="crime-alert" id="uploadAlert">
+                ⚠️ CRIME DETECTED! ⚠️
+            </div>
+        </div>
+
+        <div class="fact-section">
+            <div class="fact">
+                <strong><i class="fas fa-lightbulb"></i> Did You Know?</strong>
+                <p>AI-powered surveillance systems can help reduce crime rates by up to 20% in monitored areas.</p>
+            </div>
+            <div class="fact">
+                <strong><i class="fas fa-shield-alt"></i> Safety Tip:</strong>
+                <p>Regular monitoring and quick response to suspicious activities can prevent many crimes before they occur.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Crime Detection System | <i class="fas fa-code"></i> with <i class="fas fa-heart"></i> for safety</p>
+    </footer>
+
+    <!-- Alarm Sound -->
+    <audio id="alarmSound" src="{{ url_for('static', filename='alarm.mp3') }}" preload="auto"></audio>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        let predictionInterval;
+        let isLightTheme = false;
+
+        function startStream() {
+            const url = document.getElementById('urlInput').value;
+            if (!url) {
+                alert('Please enter a valid CCTV stream URL');
+                return;
+            }
+
+            fetch('/start_live_stream', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ url: url })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('streamStatus').textContent = `Error: ${data.error}`;
+                    return;
+                }
+                
+                document.getElementById('streamView').style.display = 'block';
+                document.getElementById('streamView').src = '/video_feed';
+                document.getElementById('streamStatus').textContent = '🟢 Stream Active';
+                document.getElementById('streamAlert').style.display = 'none';
+                
+                // Start polling for predictions
+                predictionInterval = setInterval(checkPrediction, 1000);
+            })
+            .catch(error => {
+                document.getElementById('streamStatus').textContent = `❌ Error: ${error.message}`;
+            });
+        }
+
+        function stopStream() {
+            fetch('/stop_live_stream', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('streamView').style.display = 'none';
+                document.getElementById('streamStatus').textContent = '⭕ Stream Stopped';
+                document.getElementById('streamAlert').style.display = 'none';
+                clearInterval(predictionInterval);
+                document.getElementById('streamPrediction').textContent = 'No prediction yet';
+            })
+            .catch(error => {
+                document.getElementById('streamStatus').textContent = `❌ Error: ${error.message}`;
+            });
+        }
+
+        function checkPrediction() {
+            fetch('/get_current_prediction')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('streamPrediction').textContent = data.prediction;
+                if (data.prediction === "Crime detected!") {
+                    playAlarm();
+                    document.getElementById('streamAlert').style.display = 'block';
+                } else {
+                    document.getElementById('streamAlert').style.display = 'none';
+                }
+            });
+        }
+
+        function playAlarm() {
+            const alarmSound = document.getElementById('alarmSound');
+            alarmSound.play().catch(function(error) {
+                console.log("Audio playback failed: " + error);
+            });
+        }
+
+        function handleVideoUpload() {
+            var input = document.getElementById('fileInput');
+            var file = input.files[0];
+            if (!file) {
+                alert("Please select a video file.");
+                return;
+            }
+
+            var preview = document.getElementById('preview');
+            var video = document.getElementById('uploadedVideo');
+            video.src = URL.createObjectURL(file);
+            preview.style.display = 'block';
+            video.play();
+
+            uploadVideo(file);
+        }
+
+        function uploadVideo(file) {
+            var formData = new FormData();
+            formData.append('file', file);
+
+            $('#loading').show();
+            $('#result').empty();
+            $('#uploadAlert').hide();
+
+            $.ajax({
+                url: '/predict',
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function(response) {
+                    $('#loading').hide();
+                    $('#result').text(response.result);
+                    
+                    if (response.result === "Crime detected!") {
+                        playAlarm();
+                        $('#uploadAlert').show();
+                    }
+                },
+                error: function(xhr, status, error) {
+                    $('#loading').hide();
+                    $('#result').text("Error: " + xhr.responseJSON.error);
+                }
+            });
+        }
+
+        function toggleTheme() {
+            isLightTheme = !isLightTheme;
+            if (isLightTheme) {
+                document.documentElement.style.setProperty('--bg-color-light', '#ffffff');
+                document.documentElement.style.setProperty('--bg-color-dark', '#f0f2f5');
+                document.documentElement.style.setProperty('--text-color-dark', '#2c3e50');
+                document.documentElement.style.setProperty('--text-color-light', '#2c3e50');
+            } else {
+                document.documentElement.style.setProperty('--bg-color-light', '#bdc3c7');
+                document.documentElement.style.setProperty('--bg-color-dark', '#2c3e50');
+                document.documentElement.style.setProperty('--text-color-dark', '#ffffff');
+                document.documentElement.style.setProperty('--text-color-light', '#2c3e50');
+            }
+        }
+
+        // Initialize any tooltips
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+    </script>
+</body>
+</html>
